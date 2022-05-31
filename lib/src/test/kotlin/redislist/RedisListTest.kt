@@ -73,4 +73,30 @@ class RedisListTest {
             }
         }
     }
+
+    @Test
+    fun removeAtTest() {
+        jedisPool.resource.use { jedis->
+            val expected = listOf("one", "two", "three")
+            expected.forEach { jedis.rpush(listKey, it) }
+            val list: MutableList<String> = RedisList(listKey, jedis)
+            list.removeAt(1)
+            assertEquals(2, jedis.llen(listKey))
+            assertEquals("one", jedis.lpop(listKey))
+            assertEquals("three", jedis.lpop(listKey))
+        }
+    }
+
+    @Test
+    fun removeElement() {
+        jedisPool.resource.use { jedis->
+            val expected = listOf("one", "two", "three")
+            expected.forEach { jedis.rpush(listKey, it) }
+            val list: MutableList<String> = RedisList(listKey, jedis)
+            list.remove("two")
+            assertEquals(2, jedis.llen(listKey))
+            assertEquals("one", jedis.lpop(listKey))
+            assertEquals("three", jedis.lpop(listKey))
+        }
+    }
 }

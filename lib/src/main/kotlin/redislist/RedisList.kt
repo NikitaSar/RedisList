@@ -80,7 +80,7 @@ class RedisList<T>(
     }
 
     override fun remove(element: T): Boolean {
-        TODO("Not yet implemented")
+        return jedis.lrem(listKey, 1, element.toString()) != 0L
     }
 
     override fun removeAll(elements: Collection<T>): Boolean {
@@ -88,7 +88,12 @@ class RedisList<T>(
     }
 
     override fun removeAt(index: Int): T {
-        TODO("Not yet implemented")
+        val script = """
+            local element = redis.call('LINDEX', KEYS[1], KEYS[2]);
+            redis.call('LREM', KEYS[1], 1, element)
+            return element
+        """
+        return jedis.eval(script, 2, listKey, index.toString()) as T
     }
 
     override fun retainAll(elements: Collection<T>): Boolean {
